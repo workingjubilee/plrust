@@ -12,10 +12,14 @@ jobs:
         target:
           - runs-on: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
+            # `cargo pgx init` doesn't currently handle cross.
+            test: false
           - runs-on: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
+            test: true
           - runs-on: macos-latest
             triple: x86_64-apple-darwin
+            test: true
 
     runs-on: ${{ matrix.target.runs-on }}
     steps:
@@ -62,11 +66,11 @@ jobs:
           command: fmt
           args: --all -- --check
 
-      - name: Execute cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+      # - name: Execute cargo clippy
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: clippy
+      #     args: -- -D warnings
 
       - name: Execute cargo build
         uses: actions-rs/cargo@v1
@@ -75,6 +79,7 @@ jobs:
           command: build --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
 
       - name: Execute cargo test
+        if: ${{ matrix.target.test == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
