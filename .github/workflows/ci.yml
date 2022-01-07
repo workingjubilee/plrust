@@ -19,9 +19,11 @@ jobs:
 
     runs-on: ${{ matrix.target.runs-on }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
+      - name: Cache
+        uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/bin/
@@ -31,13 +33,15 @@ jobs:
             target/
           key: ${{ matrix.target.runs-on }}-${{ matrix.target.triple }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           
-      - uses: actions-rs/toolchain@v1
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           components: rustfmt, clippy
           target: ${{ matrix.target.triple }}
 
-      - run:
+      - name: Initialize cargo-pgx
+        run: |
           cargo install cargo-pgx
           cargo pgx init
 
