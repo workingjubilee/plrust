@@ -51,30 +51,30 @@ jobs:
             echo "PGX_CACHED=false" >> $GITHUB_ENV
           fi
       
-      - name: `cargo pgx init`
+      - name: Execute cargo pgx init
         if: ${{ env.PGX_CACHED != "true" }}
         run: |
           cargo pgx init 
 
-      - name: `cargo fmt`
+      - name: Execute cargo fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - name: `cargo clippy`
+      - name: Execute cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: -- -D warnings
 
-      - name: `cargo build`
+      - name: Execute cargo build
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
 
-      - name: `cargo test`
+      - name: Execute cargo test
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
