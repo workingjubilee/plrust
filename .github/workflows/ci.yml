@@ -52,7 +52,7 @@ jobs:
           fi
       
       - name: Execute cargo pgx init
-        if: ${{ env.PGX_CACHED != "true" }}
+        if: ${{ env.PGX_CACHED != 'true' }}
         run: |
           cargo pgx init 
 
