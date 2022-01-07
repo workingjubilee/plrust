@@ -76,12 +76,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          command: build --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
+          command: build
+          args: --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
 
       - name: Execute cargo test
         if: ${{ matrix.target.test == 'true' }}
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          command: test --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
+          command: test
+          args: --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
 
