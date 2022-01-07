@@ -77,7 +77,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
+          args: --target ${{matrix.target.triple }} --no-default-features --features "pg${{ matrix.pg_version }}"
 
       - name: Execute cargo test
         if: ${{ matrix.target.test == 'true' }}
@@ -85,5 +85,5 @@ jobs:
         with:
           use-cross: true
           command: test
-          args: --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
+          args: --target ${{matrix.target.triple }} --no-default-features --features "pg${{ matrix.pg_version }}"
 
