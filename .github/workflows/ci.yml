@@ -1,7 +1,7 @@
 on: [push]
 
 jobs:          
-  check:
+  ci:
     strategy:
       matrix:
         pg_version:
@@ -31,7 +31,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ matrix.target.runs-on }}-${{ matrix.target.triple }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ~/.pgx
+          key: ci-${{ matrix.target.runs-on }}-${{ matrix.target.triple }}-${{ hashFiles('**/Cargo.lock') }}
           
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -40,27 +41,41 @@ jobs:
           components: rustfmt, clippy
           target: ${{ matrix.target.triple }}
 
-      - name: Initialize cargo-pgx
+      - name: Install cargo-pgx
         run: |
           cargo install cargo-pgx
-          cargo pgx init
 
-      - uses: actions-rs/cargo@v1
+          if [ -d ~/.pgx ]; then
+            echo "PGX_CACHED=true" >> $GITHUB_ENV
+          else
+            echo "PGX_CACHED=false" >> $GITHUB_ENV
+          fi
+      
+      - name: `cargo pgx init`
+        if: ${{ env.PGX_CACHED != "true" }}
+        run: |
+          cargo pgx init 
+
+      - name: `cargo fmt`
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - uses: actions-rs/cargo@v1
+      - name: `cargo clippy`
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: -- -D warnings
 
-      - uses: actions-rs/cargo@v1
+      - name: `cargo build`
+        uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
 
-      - uses: actions-rs/cargo@v1
+      - name: `cargo test`
+        uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: test --target ${{matrix.target.triple }} --no-default-features --features "${{ matrix.pg_version }}"
