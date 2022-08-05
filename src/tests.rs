@@ -291,6 +291,30 @@ mod tests {
             Some("operation not supported on this platform".to_string())
         );
     }
+
+    #[pg_test]
+    #[search_path(@extschema@)]
+    fn plrust_no_unsafe_in_user_fn() {
+        let definition = r#"
+            CREATE FUNCTION read_random_memory(address BIGINT) RETURNS bytea
+            LANGUAGE PLRUST AS
+            $$
+                // We're going to read random memory and return it!
+                let mut b = Vec::<u8>::new();
+                let mut ptr = address as *const u8; // Yippee, a raw pointer!
+
+                // Let's read until the pointer or the byte is null!
+                let null = std::ptr::null();
+                while let Some(byte @ 1..) = (ptr != null).then(|| unsafe { ptr.read() }) {
+                    b.push(byte);
+                    ptr = unsafe { ptr.add(1) };
+                }
+                Some(b)
+            $$;
+        "#;
+
+        Spi::run(definition);
+    }
 }
 
 #[cfg(any(test, feature = "pg_test"))]

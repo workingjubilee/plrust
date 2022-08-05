@@ -190,8 +190,18 @@ fn parse_source_and_deps(code_and_deps: &str) -> eyre::Result<(syn::Block, toml:
     let user_dependencies: toml::value::Table =
         toml::from_str(&deps_block).map_err(PlRustError::ParsingDependenciesBlock)?;
 
-    let user_code: syn::Block =
-        syn::parse_str(&format!("{{ {code_block} }}")).map_err(PlRustError::ParsingCodeBlock)?;
+    let code_block = format!("{{ {code_block} }}");
+    eprintln!("{code_block}");
+
+    // Best spot to do the unsafety check?
+    use geiger::{find_unsafe_in_string, IncludeTests::No, RsFileMetrics};
+    let RsFileMetrics { counters, .. } = find_unsafe_in_string(&code_block, No)?;
+
+    let user_code: syn::Block = if counters.has_unsafe() {
+        Err(PlRustError::UnsafeUserFn(code_block))
+    } else {
+        syn::parse_str(&code_block).map_err(PlRustError::ParsingCodeBlock)
+    }?;
 
     Ok((user_code, user_dependencies))
 }

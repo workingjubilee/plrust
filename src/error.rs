@@ -34,4 +34,6 @@ pub(crate) enum PlRustError {
     ParsingCodeBlock(syn::Error),
     #[error("Parsing error at span `{:?}`", .0.span())]
     Parse(#[from] syn::Error),
+    #[error("Detected unsafe code in user function `{}`", .0)]
+    UnsafeUserFn(String),
 }
